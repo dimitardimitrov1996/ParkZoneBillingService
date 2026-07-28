@@ -1,11 +1,11 @@
-package softuni.controller.invoice;
+package softuni.parkzonebillingservice.controller.invoice;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import softuni.parkzonebillingservice.model.dto.invoice.CreateInvoiceRequest;
 import softuni.parkzonebillingservice.model.dto.invoice.InvoiceResponse;
-import softuni.service.invoice.InvoiceService;
+import softuni.parkzonebillingservice.service.invoice.InvoiceService;
 
 import java.util.UUID;
 

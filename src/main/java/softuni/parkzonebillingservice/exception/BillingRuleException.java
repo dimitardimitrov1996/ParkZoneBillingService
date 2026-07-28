@@ -1,4 +1,4 @@
-package softuni.exception;
+package softuni.parkzonebillingservice.exception;
 
 public class BillingRuleException extends RuntimeException {
 

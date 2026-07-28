@@ -1,4 +1,4 @@
-package softuni.mapper.invoice;
+package softuni.parkzonebillingservice.mapper.invoice;
 
 import org.springframework.stereotype.Component;
 import softuni.parkzonebillingservice.model.dto.invoice.InvoiceResponse;

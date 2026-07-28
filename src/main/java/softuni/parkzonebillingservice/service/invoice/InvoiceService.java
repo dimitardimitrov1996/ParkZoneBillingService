@@ -1,8 +1,8 @@
-package softuni.service.invoice;
+package softuni.parkzonebillingservice.service.invoice;
 
 import org.springframework.stereotype.Service;
-import softuni.exception.BillingRuleException;
-import softuni.mapper.invoice.InvoiceMapper;
+import softuni.parkzonebillingservice.exception.BillingRuleException;
+import softuni.parkzonebillingservice.mapper.invoice.InvoiceMapper;
 import softuni.parkzonebillingservice.model.dto.invoice.CreateInvoiceRequest;
 import softuni.parkzonebillingservice.model.dto.invoice.InvoiceResponse;
 import softuni.parkzonebillingservice.model.entity.Invoice;
