@@ -34,7 +34,8 @@ public class InvoiceService {
                 .userId(request.getUserId())
                 .amount(request.getAmount())
                 .currency(request.getCurrency())
-                .status(softuni.parkzonebillingservice.model.entity.InvoiceStatus.PENDING)
+                .status(InvoiceStatus.PENDING)
+                .createdOn(LocalDateTime.now())
                 .build();
 
         return invoiceMapper.mapToResponse(invoiceRepository.save(invoice));
