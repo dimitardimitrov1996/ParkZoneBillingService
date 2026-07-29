@@ -2,6 +2,7 @@ package softuni.parkzonebillingservice.service.invoice;
 
 import org.springframework.stereotype.Service;
 import softuni.parkzonebillingservice.exception.BillingRuleException;
+import softuni.parkzonebillingservice.exception.InvoiceNotFoundException;
 import softuni.parkzonebillingservice.mapper.invoice.InvoiceMapper;
 import softuni.parkzonebillingservice.model.dto.invoice.CreateInvoiceRequest;
 import softuni.parkzonebillingservice.model.dto.invoice.InvoiceResponse;
@@ -42,7 +43,7 @@ public class InvoiceService {
     public InvoiceResponse getInvoiceByReservationId(UUID reservationId) {
 
         Invoice invoice = invoiceRepository.findByReservationId(reservationId)
-                .orElseThrow(() -> new BillingRuleException("Invoice not found"));
+                .orElseThrow(() -> new InvoiceNotFoundException("Invoice not found"));
 
         return invoiceMapper.mapToResponse(invoice);
     }
@@ -50,7 +51,7 @@ public class InvoiceService {
     public InvoiceResponse payInvoice(UUID invoiceId) {
 
         Invoice invoice = invoiceRepository.findById(invoiceId)
-                .orElseThrow(() -> new BillingRuleException("Invoice not found"));
+                .orElseThrow(() -> new InvoiceNotFoundException("Invoice not found"));
 
         if (invoice.getStatus() != InvoiceStatus.PENDING) {
             throw new BillingRuleException("Only pending invoices can be paid");
@@ -65,7 +66,7 @@ public class InvoiceService {
     public InvoiceResponse cancelInvoiceByReservationId(UUID reservationId) {
 
         Invoice invoice = invoiceRepository.findByReservationId(reservationId)
-                .orElseThrow(() -> new BillingRuleException("Invoice not found"));
+                .orElseThrow(() -> new InvoiceNotFoundException("Invoice not found"));
 
         if (invoice.getStatus() == InvoiceStatus.CANCELLED
                 || invoice.getStatus() == InvoiceStatus.REFUNDED) {

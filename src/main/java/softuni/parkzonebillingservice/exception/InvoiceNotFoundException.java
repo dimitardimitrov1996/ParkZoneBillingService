@@ -2,14 +2,14 @@ package softuni.parkzonebillingservice.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class BillingRuleException extends ApiException {
+public class InvoiceNotFoundException extends ApiException {
 
-    public BillingRuleException(String message) {
+    public InvoiceNotFoundException(String message) {
         super(message);
     }
 
     @Override
     public HttpStatus getHttpStatus() {
-        return HttpStatus.BAD_REQUEST;
+        return HttpStatus.NOT_FOUND;
     }
 }

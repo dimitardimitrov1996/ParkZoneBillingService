@@ -10,7 +10,7 @@ import softuni.parkzonebillingservice.service.invoice.InvoiceService;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/invoices")
+@RequestMapping("/api/v1/invoices")
 public class InvoiceController {
 
     private final InvoiceService invoiceService;
