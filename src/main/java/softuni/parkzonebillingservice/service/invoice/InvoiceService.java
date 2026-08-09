@@ -1,5 +1,6 @@
 package softuni.parkzonebillingservice.service.invoice;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import softuni.parkzonebillingservice.exception.BillingRuleException;
 import softuni.parkzonebillingservice.exception.InvoiceNotFoundException;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
@@ -26,6 +28,7 @@ public class InvoiceService {
     public InvoiceResponse createInvoice(CreateInvoiceRequest request) {
 
         if (invoiceRepository.existsByReservationId(request.getReservationId())) {
+            log.warn("Invoice creation rejected. Reservation [{}] already has invoice", request.getReservationId());
             throw new BillingRuleException("Invoice for this reservation already exists");
         }
 
@@ -38,7 +41,12 @@ public class InvoiceService {
                 .createdOn(LocalDateTime.now())
                 .build();
 
-        return invoiceMapper.mapToResponse(invoiceRepository.save(invoice));
+        Invoice savedInvoice = invoiceRepository.save(invoice);
+
+        log.info("Invoice [{}] created for reservation [{}] and user [{}]",
+                savedInvoice.getId(), savedInvoice.getReservationId(), savedInvoice.getUserId());
+
+        return invoiceMapper.mapToResponse(savedInvoice);
     }
 
     public InvoiceResponse getInvoiceByReservationId(UUID reservationId) {
@@ -55,13 +63,18 @@ public class InvoiceService {
                 .orElseThrow(() -> new InvoiceNotFoundException("Invoice not found"));
 
         if (invoice.getStatus() != InvoiceStatus.PENDING) {
+            log.warn("Invoice [{}] payment rejected because status is [{}]", invoiceId, invoice.getStatus());
             throw new BillingRuleException("Only pending invoices can be paid");
         }
 
         invoice.setStatus(InvoiceStatus.PAID);
         invoice.setPaidOn(LocalDateTime.now());
 
-        return invoiceMapper.mapToResponse(invoiceRepository.save(invoice));
+        Invoice savedInvoice = invoiceRepository.save(invoice);
+
+        log.info("Invoice [{}] paid", savedInvoice.getId());
+
+        return invoiceMapper.mapToResponse(savedInvoice);
     }
 
     public InvoiceResponse cancelInvoiceByReservationId(UUID reservationId) {
@@ -71,6 +84,7 @@ public class InvoiceService {
 
         if (invoice.getStatus() == InvoiceStatus.CANCELLED
                 || invoice.getStatus() == InvoiceStatus.REFUNDED) {
+            log.warn("Invoice [{}] cancellation rejected because status is [{}]", invoice.getId(), invoice.getStatus());
             throw new BillingRuleException("Invoice is already closed");
         }
 
@@ -82,7 +96,12 @@ public class InvoiceService {
 
         invoice.setCancelledOn(LocalDateTime.now());
 
-        return invoiceMapper.mapToResponse(invoiceRepository.save(invoice));
+        Invoice savedInvoice = invoiceRepository.save(invoice);
+
+        log.info("Invoice [{}] closed with status [{}] for reservation [{}]",
+                savedInvoice.getId(), savedInvoice.getStatus(), reservationId);
+
+        return invoiceMapper.mapToResponse(savedInvoice);
     }
 
 
