@@ -7,6 +7,7 @@ import softuni.parkzonebillingservice.exception.InvoiceNotFoundException;
 import softuni.parkzonebillingservice.mapper.invoice.InvoiceMapper;
 import softuni.parkzonebillingservice.model.dto.invoice.CreateInvoiceRequest;
 import softuni.parkzonebillingservice.model.dto.invoice.InvoiceResponse;
+import softuni.parkzonebillingservice.model.dto.invoice.UpdateInvoiceRequest;
 import softuni.parkzonebillingservice.model.entity.Invoice;
 import softuni.parkzonebillingservice.model.entity.InvoiceStatus;
 import softuni.parkzonebillingservice.repository.invoice.InvoiceRepository;
@@ -104,8 +105,29 @@ public class InvoiceService {
         return invoiceMapper.mapToResponse(savedInvoice);
     }
 
+    public InvoiceResponse updateInvoiceByReservationId(UUID reservationId, UpdateInvoiceRequest request) {
 
+        Invoice invoice = invoiceRepository.findByReservationId(reservationId)
+                .orElseThrow(() -> new InvoiceNotFoundException("Invoice not found"));
 
+        if (invoice.getStatus() != InvoiceStatus.PENDING) {
+            log.warn("Invoice [{}] update rejected because status is [{}]",
+                    invoice.getId(), invoice.getStatus());
 
+            throw new BillingRuleException("Only pending invoices can be updated");
+        }
 
+        invoice.setAmount(request.getAmount());
+        invoice.setCurrency(request.getCurrency());
+
+        Invoice savedInvoice = invoiceRepository.save(invoice);
+
+        log.info("Invoice [{}] updated for reservation [{}]. New amount [{}] [{}]",
+                savedInvoice.getId(),
+                reservationId,
+                savedInvoice.getAmount(),
+                savedInvoice.getCurrency());
+
+        return invoiceMapper.mapToResponse(savedInvoice);
+    }
 }

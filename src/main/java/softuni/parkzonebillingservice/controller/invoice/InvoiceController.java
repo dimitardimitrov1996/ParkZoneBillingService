@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import softuni.parkzonebillingservice.model.dto.invoice.CreateInvoiceRequest;
 import softuni.parkzonebillingservice.model.dto.invoice.InvoiceResponse;
+import softuni.parkzonebillingservice.model.dto.invoice.UpdateInvoiceRequest;
 import softuni.parkzonebillingservice.service.invoice.InvoiceService;
 
 import java.util.UUID;
@@ -38,5 +39,13 @@ public class InvoiceController {
     @PutMapping("/reservation/{reservationId}/cancel")
     public InvoiceResponse cancelInvoiceByReservationId(@PathVariable UUID reservationId) {
         return invoiceService.cancelInvoiceByReservationId(reservationId);
+    }
+
+    @PutMapping("/reservation/{reservationId}")
+    public InvoiceResponse updateInvoiceByReservationId(
+            @PathVariable UUID reservationId,
+            @Valid @RequestBody UpdateInvoiceRequest request) {
+
+        return invoiceService.updateInvoiceByReservationId(reservationId, request);
     }
 }

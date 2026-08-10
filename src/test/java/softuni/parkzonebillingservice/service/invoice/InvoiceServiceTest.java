@@ -11,6 +11,7 @@ import softuni.parkzonebillingservice.exception.InvoiceNotFoundException;
 import softuni.parkzonebillingservice.mapper.invoice.InvoiceMapper;
 import softuni.parkzonebillingservice.model.dto.invoice.CreateInvoiceRequest;
 import softuni.parkzonebillingservice.model.dto.invoice.InvoiceResponse;
+import softuni.parkzonebillingservice.model.dto.invoice.UpdateInvoiceRequest;
 import softuni.parkzonebillingservice.model.entity.Invoice;
 import softuni.parkzonebillingservice.model.entity.InvoiceStatus;
 import softuni.parkzonebillingservice.repository.invoice.InvoiceRepository;
@@ -29,6 +30,9 @@ class InvoiceServiceTest {
 
     @Mock
     private InvoiceMapper invoiceMapper;
+
+    @Mock
+    private UpdateInvoiceRequest updateInvoiceRequest;
 
     @InjectMocks
     private InvoiceService invoiceService;
@@ -71,6 +75,11 @@ class InvoiceServiceTest {
                 .reservationId(reservationId)
                 .userId(userId)
                 .amount(BigDecimal.valueOf(240))
+                .currency("EUR")
+                .build();
+
+        updateInvoiceRequest = UpdateInvoiceRequest.builder()
+                .amount(BigDecimal.valueOf(300))
                 .currency("EUR")
                 .build();
     }
@@ -284,4 +293,67 @@ class InvoiceServiceTest {
 
         verify(invoiceRepository, never()).save(any());
     }
+
+    @Test
+    void updateInvoiceByReservationId_whenInvoiceIsPending_shouldUpdateInvoice() {
+        InvoiceResponse updatedResponse = InvoiceResponse.builder()
+                .id(invoiceId)
+                .reservationId(reservationId)
+                .userId(userId)
+                .amount(BigDecimal.valueOf(300))
+                .currency("EUR")
+                .status(InvoiceStatus.PENDING)
+                .createdOn(invoice.getCreatedOn())
+                .build();
+
+        when(invoiceRepository.findByReservationId(reservationId))
+                .thenReturn(Optional.of(invoice));
+        when(invoiceRepository.save(invoice))
+                .thenReturn(invoice);
+        when(invoiceMapper.mapToResponse(invoice))
+                .thenReturn(updatedResponse);
+
+        InvoiceResponse result = invoiceService.updateInvoiceByReservationId(
+                reservationId,
+                updateInvoiceRequest
+        );
+
+        assertEquals(updatedResponse, result);
+        assertEquals(BigDecimal.valueOf(300), invoice.getAmount());
+        assertEquals("EUR", invoice.getCurrency());
+        assertEquals(InvoiceStatus.PENDING, invoice.getStatus());
+
+        verify(invoiceRepository).save(invoice);
+    }
+
+    @Test
+    void updateInvoiceByReservationId_whenInvoiceDoesNotExist_shouldThrowException() {
+        when(invoiceRepository.findByReservationId(reservationId))
+                .thenReturn(Optional.empty());
+
+        assertThrows(InvoiceNotFoundException.class,
+                () -> invoiceService.updateInvoiceByReservationId(
+                        reservationId,
+                        updateInvoiceRequest
+                ));
+
+        verify(invoiceRepository, never()).save(any());
+    }
+
+    @Test
+    void updateInvoiceByReservationId_whenInvoiceIsNotPending_shouldThrowException() {
+        invoice.setStatus(InvoiceStatus.PAID);
+
+        when(invoiceRepository.findByReservationId(reservationId))
+                .thenReturn(Optional.of(invoice));
+
+        assertThrows(BillingRuleException.class,
+                () -> invoiceService.updateInvoiceByReservationId(
+                        reservationId,
+                        updateInvoiceRequest
+                ));
+
+        verify(invoiceRepository, never()).save(any());
+    }
+
 }

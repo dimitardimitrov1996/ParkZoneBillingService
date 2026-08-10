@@ -21,7 +21,7 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
     private final String validApiKey;
 
-    public ApiKeyAuthenticationFilter(@Value("${billing.service.api-key}") String validApiKey) {
+    public ApiKeyAuthenticationFilter(@Value("${billing.service.api.key}") String validApiKey) {
         this.validApiKey = validApiKey;
     }
 

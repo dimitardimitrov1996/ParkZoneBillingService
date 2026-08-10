@@ -14,6 +14,7 @@ import softuni.parkzonebillingservice.config.ApiKeyAuthenticationFilter;
 import softuni.parkzonebillingservice.config.SecurityConfiguration;
 import softuni.parkzonebillingservice.model.dto.invoice.CreateInvoiceRequest;
 import softuni.parkzonebillingservice.model.dto.invoice.InvoiceResponse;
+import softuni.parkzonebillingservice.model.dto.invoice.UpdateInvoiceRequest;
 import softuni.parkzonebillingservice.model.entity.InvoiceStatus;
 import softuni.parkzonebillingservice.service.invoice.InvoiceService;
 import java.math.BigDecimal;
@@ -30,7 +31,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @WebMvcTest(InvoiceController.class)
 @Import({SecurityConfiguration.class, ApiKeyAuthenticationFilter.class})
-@TestPropertySource(properties = "billing.service.api-key=test-api-key")
 class InvoiceControllerTest {
 
     private static final String API_KEY_HEADER = "X-API-Key";
@@ -50,6 +50,7 @@ class InvoiceControllerTest {
     private UUID reservationId;
     private UUID userId;
 
+    private UpdateInvoiceRequest updateInvoiceRequest;
     private CreateInvoiceRequest createInvoiceRequest;
     private InvoiceResponse invoiceResponse;
 
@@ -74,6 +75,11 @@ class InvoiceControllerTest {
                 .currency("EUR")
                 .status(InvoiceStatus.PENDING)
                 .createdOn(LocalDateTime.now())
+                .build();
+
+        updateInvoiceRequest = UpdateInvoiceRequest.builder()
+                .amount(BigDecimal.valueOf(300))
+                .currency("EUR")
                 .build();
     }
 
@@ -195,6 +201,39 @@ class InvoiceControllerTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.status").value(403))
                 .andExpect(jsonPath("$.message").value("Invalid API Key!"));
+    }
+
+    @Test
+    void updateInvoiceByReservationId_whenApiKeyIsValidAndRequestIsValid_shouldReturnUpdatedInvoice() throws Exception {
+        InvoiceResponse updatedInvoice = InvoiceResponse.builder()
+                .id(invoiceId)
+                .reservationId(reservationId)
+                .userId(userId)
+                .amount(BigDecimal.valueOf(300))
+                .currency("EUR")
+                .status(InvoiceStatus.PENDING)
+                .createdOn(LocalDateTime.now())
+                .build();
+
+        when(invoiceService.updateInvoiceByReservationId(any(UUID.class), any(UpdateInvoiceRequest.class)))
+                .thenReturn(updatedInvoice);
+
+        mockMvc.perform(put("/api/v1/invoices/reservation/{reservationId}", reservationId)
+                        .header(API_KEY_HEADER, VALID_API_KEY)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(updateInvoiceRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(invoiceId.toString()))
+                .andExpect(jsonPath("$.reservationId").value(reservationId.toString()))
+                .andExpect(jsonPath("$.userId").value(userId.toString()))
+                .andExpect(jsonPath("$.amount").value(300))
+                .andExpect(jsonPath("$.currency").value("EUR"))
+                .andExpect(jsonPath("$.status").value("PENDING"));
+
+        verify(invoiceService).updateInvoiceByReservationId(
+                any(UUID.class),
+                any(UpdateInvoiceRequest.class)
+        );
     }
 
 }
