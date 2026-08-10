@@ -295,7 +295,7 @@ The value of `BILLING_API_KEY` must match the API key used by the main ParkZone 
 Example application property:
 
 ```properties
-billing.service.api-key=${BILLING_API_KEY}
+billing.service.api.key=${BILLING_API_KEY}
 ```
 
 ## Running the Application
