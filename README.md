@@ -193,12 +193,6 @@ If the API key is invalid, the service returns:
 403 Forbidden
 ```
 
-Actuator endpoints are publicly accessible:
-
-```text
-/actuator/**
-```
-
 ## Communication with ParkZone
 
 ParkZone communicates with this billing microservice through OpenFeign.
